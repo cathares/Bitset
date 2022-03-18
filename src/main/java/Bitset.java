@@ -131,7 +131,6 @@ public class Bitset implements Iterable<Integer> {
         return this;
     }
 
-
     @Override
     public Iterator<Integer> iterator() {
         return new MyIterator<Integer>(this.elements);
