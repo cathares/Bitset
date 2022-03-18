@@ -14,28 +14,17 @@ import java.util.*;
 public class Bitset implements Iterable<Integer> {
 
     private final ArrayList<Boolean> elements;
-
-    public static class Universum {
-
-        private final Bitset set;
-
-        public Universum(Bitset set) {
-            for (int i = 0; i < set.elements.size(); i++) {
-                set.elements.set(i, !set.elements.get(i));
-            }
-            this.set = set;
-        }
-
-    }
+    private Boolean universum;
 
     public Bitset(int size) {
+        universum = false;
         elements = new ArrayList<>();
-        for (int i=0; i < size; i++) {
+        for (int i = 0; i < size; i++) {
             elements.add(i, true);
         }
     }
 
-    public List<Integer> getSet(){
+    public List<Integer> getSet() {
         ArrayList<Integer> res = new ArrayList<>();
         for (int i = 0; i < elements.size(); i++) {
             if (elements.get(i)) {
@@ -45,47 +34,57 @@ public class Bitset implements Iterable<Integer> {
         return res;
     }
 
+    public int size() {
+        var size = 0;
+        for (Boolean element : elements) {
+            if (element) size++;
+        }
+        return size;
+    }
 
     public Bitset(List<Integer> elems) {
+        universum = false;
         elements = new ArrayList<>();
         for (int i = 0; i <= Collections.max(elems); i++) {
             if (elems.contains(i)) {
                 elements.add(i, true);
-            }
-            else {
+            } else {
                 elements.add(i, false);
             }
         }
-    }
-    public void add(int elem) {
-        if (elem >= this.elements.size()) {
-            for (int i = this.elements.size(); i < elem; i++) {
-                elements.add(i, false);
-            }
-            elements.add(elem, true);
-        }
-        else elements.set(elem, true);
     }
 
-    public void add(List<Integer> elems) {
-        for (int elem: elems) {
+    public void add(int elem) {
+        if (elem >= 0) {
             if (elem >= this.elements.size()) {
                 for (int i = this.elements.size(); i < elem; i++) {
                     elements.add(i, false);
                 }
                 elements.add(elem, true);
+            } else elements.set(elem, true);
+        }
+    }
+
+    public void add(List<Integer> elems) {
+        for (int elem : elems) {
+            if (elem >= 0) {
+                if (elem >= this.elements.size()) {
+                    for (int i = this.elements.size(); i < elem; i++) {
+                        elements.add(i, false);
+                    }
+                    elements.add(elem, true);
+                } else elements.set(elem, true);
             }
-            else elements.set(elem, true);
         }
     }
 
     public void remove(int elem) {
         if (elem < this.elements.size())
-        elements.set(elem, false);
+            elements.set(elem, false);
     }
 
     public void remove(List<Integer> elems) {
-        for (int elem: elems) {
+        for (int elem : elems) {
             if (elem < this.elements.size())
                 elements.set(elem, false);
         }
@@ -101,63 +100,66 @@ public class Bitset implements Iterable<Integer> {
                 if (other.elements.get(i)) {
                     this.elements.set(i, true);
                 }
-            }
-            else this.elements.add(i, other.elements.get(i));
+            } else this.elements.add(i, other.elements.get(i));
         }
         return this;
     }
 
     public Bitset intersect(Bitset other) {
-        for (int i = 0; i < this.elements.size(); i++) {
-            if (other.elements.size() <= i || !other.elements.get(i)) {
-                this.elements.set(i, false);
+        if (!other.universum) {
+            for (int i = 0; i < this.elements.size(); i++) {
+                if (other.elements.size() <= i || !other.elements.get(i)) {
+                    this.elements.set(i, false);
+                }
             }
+        } else {
+            for (int i = 0; i < this.elements.size(); i++) {
+                if (!(this.contains(i) && (other.contains(i) || other.elements.size() <= i))) {
+                    this.elements.set(i, false);
+                }
+            }
+        }
+        this.universum = false;
+        return this;
+    }
+
+    public Bitset complement() {
+        universum = true;
+        for (int i = 0; i < elements.size(); i++) {
+            elements.set(i, !elements.get(i));
         }
         return this;
     }
 
-    public Universum complement(){
-        return new Universum(this);
-    }
-
-    public Bitset intersect(Universum other) {
-        for (int i = 0; i < this.elements.size(); i++) {
-            if (!(this.contains(i) && (other.set.contains(i) || other.set.elements.size() <= i))) {
-                this.elements.set(i, false);
-            }
-        }
-        return this;
-    }
-
-    public Universum union(Universum other) {
-        other.set.union(this);
-        return other;
-    }
 
     @Override
     public Iterator<Integer> iterator() {
-        return new MyIterator<Integer>(this.getSet());
+        return new MyIterator<Integer>(this.elements);
     }
 
-    public static class MyIterator<Integer> implements Iterator<Integer> {
+    public static class MyIterator<Integer> implements Iterator<java.lang.Integer> {
 
         int curr = 0;
-        List<Integer> list;
+        List<Boolean> list;
 
-        public MyIterator(List<Integer> list) {
+        public MyIterator(List<Boolean> list) {
             this.list = list;
         }
 
         @Override
         public boolean hasNext() {
-            return list.size() >= curr + 1;
+            curr++;
+            for (int i = curr; i < list.size(); i++) {
+                if (list.get(i)) {
+                    curr = i;
+                    return true;
+                }
+            }
+            return false;
         }
 
-        @Override
-        public Integer next() {
-            Integer value = list.get(curr);
-            curr++;
-            return value;
+        public java.lang.Integer next() {
+            return curr;
         }
     }
 }
