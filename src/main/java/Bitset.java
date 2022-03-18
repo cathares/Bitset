@@ -156,7 +156,6 @@ public class Bitset implements Iterable<Integer> {
             }
             return false;
         }
-
         public java.lang.Integer next() {
             return curr;
         }
